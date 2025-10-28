@@ -1,0 +1,22 @@
+services:
+  vehicle_db:
+    image: postgres:18
+    env_file:
+      - .env
+    ports:
+      - "5431:5432"
+    restart: "always"
+
+    volumes:
+      - vehicle_postgres_data:/var/lib/postgresql
+
+  vehicle_redis:
+    image: redis:8.2
+    env_file:
+      - .env
+    ports:
+      - "6378:6379"
+    restart: always
+
+volumes:
+  vehicle_postgres_data:

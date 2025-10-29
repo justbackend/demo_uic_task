@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_DB: str
 
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "attachments"
+    MINIO_USE_SSL: bool = False
+
     @computed_field
     @property
     def redis_url(self) -> RedisDsn:
@@ -40,7 +46,7 @@ class Settings(BaseSettings):
         return MultiHostUrl.build(
             scheme="redis",
             host=self.REDIS_HOST,
-            port=6378,
+            port=self.REDIS_PORT,
             path=self.REDIS_DB,
         )
 
@@ -103,7 +109,7 @@ class Settings(BaseSettings):
         return (
             f"postgres://"
             f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:5431"
+            f"@{self.POSTGRES_HOST}:5432"
             f"/{self.POSTGRES_DB}"
         )
 

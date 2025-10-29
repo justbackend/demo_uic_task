@@ -8,11 +8,6 @@ from app.user.models import User
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    """
-    Sets `request.state.user` by calling `get_current_user()` dependency.
-    Works with any JWT / token auth system.
-    """
-
     async def dispatch(self, request: Request, call_next):
         authorization: str | None = request.headers.get("Authorization")
         scheme, token = get_authorization_scheme_param(authorization)

@@ -1,9 +1,14 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
+
+UserRoleLiteral = Literal["admin", "agent"]
 
 class UserCreate(BaseModel):
     username: str
     password: str
+    role: UserRoleLiteral
 
 
 class UpdateUser(BaseModel):
@@ -15,7 +20,7 @@ class UpdateUser(BaseModel):
 class UserCurrent(BaseModel):
     id: int
     username: str
-    password: str
+    role: UserRoleLiteral
 
 
 class Token(BaseModel):

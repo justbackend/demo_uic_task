@@ -3,20 +3,38 @@ services:
     image: postgres:18
     env_file:
       - .env
-    ports:
-      - "5431:5432"
-    restart: "always"
-
+    restart: always
     volumes:
       - vehicle_postgres_data:/var/lib/postgresql
+    networks:
+      - vehicle_net
 
   vehicle_redis:
     image: redis:8.2
     env_file:
       - .env
-    ports:
-      - "6378:6379"
     restart: always
+    networks:
+      - vehicle_net
+
+  api:
+    build: .
+    container_name: fastapi_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - vehicle_redis
+      - vehicle_db
+    env_file:
+      - .env
+    networks:
+      - vehicle_net
+
 
 volumes:
   vehicle_postgres_data:
+
+networks:
+  vehicle_net:
+    driver: bridge

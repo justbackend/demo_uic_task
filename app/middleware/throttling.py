@@ -1,13 +1,12 @@
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request, HTTPException
-import time, hashlib
+from starlette.requests import Request
+import time
 from redis.asyncio import Redis
 from starlette.responses import JSONResponse
 
 from app.service.redis_service import get_redis
-from app.logistics.models import AuditLog
 
-RATE_LIMIT = 10
+RATE_LIMIT = 100
 WINDOW_SECONDS = 600
 
 
@@ -54,27 +53,4 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             "X-RateLimit-Remaining": str(RATE_LIMIT - count),
             "X-RateLimit-Reset": str(now + WINDOW_SECONDS),
         })
-        return response
-
-
-class AuditMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-
-        if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
-            return response
-
-        user_id = getattr(request.user, "id", None)
-        if not user_id:
-            return response
-
-        body = await request.body()
-        payload_hash = hashlib.sha256(body).hexdigest() if body else ""
-
-        await AuditLog.create(
-            user_id=user_id,
-            endpoint=f"{request.method} {request.url.path}",
-            payload_hash=payload_hash,
-        )
-
         return response

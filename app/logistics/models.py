@@ -35,6 +35,8 @@ class Lead(Model):
         "models.User", related_name="leads", on_delete=fields.SET_NULL, null=True
     )
 
+    attachment = fields.CharField(max_length=255, null=True)
+
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

@@ -52,7 +52,7 @@ class LeadOut(LeadBase):
 
 class OrderBase(BaseModel):
     lead_id: int
-    status: OrderStatusLiteral = OrderStatus.DRAFT  # default enum member → "draft"
+    status: OrderStatusLiteral = OrderStatus.DRAFT
     base_price: Optional[Decimal] = Field(
         None, decimal_places=2, max_digits=12, ge=0
     )
@@ -85,3 +85,29 @@ class OrderOut(OrderBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class QuoteCalcRequest(BaseModel):
+    base_price: Decimal = Field(...)
+    distance_km: float = Field(...)
+    vehicle_type: Literal["sedan", "suv", "truck"]
+    operable: bool
+    season: Optional[str] = Field("normal")
+
+
+class PriceBreakdown(BaseModel):
+    base_price: Decimal
+    distance_cost: Decimal
+    vehicle_type_bonus: Decimal
+    season_bonus: Decimal
+    operable_adjustment: Decimal
+
+
+class QuoteCalcResponse(BaseModel):
+    price_breakdown: PriceBreakdown
+    final_price: Decimal
+
+
+class RepriceResponse(BaseModel):
+    task_id: str
+    message: str = "Repricing task queued"

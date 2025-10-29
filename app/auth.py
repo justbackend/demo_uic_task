@@ -1,9 +1,6 @@
-from typing import Annotated
-
 from fastapi import HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from passlib.context import CryptContext
-from sqlalchemy.util import await_only
 from starlette import status
 from starlette.requests import Request
 
@@ -11,7 +8,7 @@ from app.config import settings
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 
-from app.user.models import User
+from app.user.models import Role
 from app.utils.constants import local_tz
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -59,55 +56,19 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# async def current_user(token: str = Depends(oauth2_scheme)):
-#     user_id = decode_access_token(token)
-#     if user_id is None:
-#         raise credentials_exception
-#     user = await User.filter(id=user_id).first()
-#     if user is None:
-#         raise credentials_exception
-#     return user
-
-# async def current_user(request: Request, token: str = Depends(oauth2_scheme)):
-#     if hasattr(request.state, "user") and request.state.user:
-#         return request.state.user
-#
-#     user_id = decode_access_token(token)
-#     if user_id is None:
-#         raise credentials_exception
-#
-#     user = await User.filter(id=user_id).first()
-#
-#     if user is None:
-#         raise credentials_exception
-#
-#     request.state.user = user
-#     return user
-#
-
-
-# async def current_user(request: Request, token: str = Depends(oauth2_scheme)):
-#     if hasattr(request.state, "user") and request.state.user:
-#         return request.state.user
-#
-#     user_id = decode_access_token(token)
-#     if user_id is None:
-#         raise credentials_exception
-#
-#     user = await User.filter(id=user_id).first()
-#
-#     if user is None:
-#         raise credentials_exception
-#
-#     request.state.user = user
-#     return user
-
-
-
-
-async def current_user(request: Request):
+async def get_current_user(request: Request, token: str = Depends(bearer_scheme)):
     user = request.scope["user"]
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
     return user
-# CurrentUser = Annotated[User, Depends(current_user)]
+
+
+async def get_admin(request: Request, token: str = Depends(bearer_scheme)):
+    user = request.scope["user"]
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found.")
+    elif user.role != Role.ADMIN:
+        raise HTTPException(status_code=401, detail="You are not allowed to perform this action.")
+
+    return user
